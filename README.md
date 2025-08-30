@@ -21,5 +21,5 @@ A React-based web application that allows users to create and launch custom toke
 ### Token Creation Form
 ![Token Creation](./assets/home-page.png)
 
-### Wallet Connection
-![Wallet Connection](./assets/explorer-solana.png)
+### Created Token
+![Created Token](./assets/explorer-solana.png)
