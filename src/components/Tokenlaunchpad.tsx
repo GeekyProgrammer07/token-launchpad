@@ -1,48 +1,18 @@
-import { createInitializeMint2Instruction, getMinimumBalanceForRentExemptMint, MINT_SIZE, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { Keypair, SystemProgram, Transaction } from "@solana/web3.js";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { useState } from "react";
 import { createToken } from "./CreateToken";
 
 export function TokenLaunchpad() {
     const [name, setName] = useState("");
     const [symbol, setSymbol] = useState("");
-    const [image, setImage] = useState("");
-    const [initialSupply, setInitialSupply] = useState(0);
+    const [image, setImage] = useState<File | null>(null);
+    // const [initialSupply, setInitialSupply] = useState(0);
+    const [decimal, setDecimal] = useState(0);
     const [token, setToken] = useState("");
-
-    const {connection} = useConnection();
+    const [isMutable, setIsMutable] = useState<boolean | undefined>()
+    const [description, setDescription] = useState<string|null>(null);
 
     const wallet = useWallet();
-
-    //Using the spl-token library
-    // const createToken = async () => {
-    //     if (!wallet.publicKey || !wallet.signTransaction) {
-    //         throw new Error("Wallet not connected or not ready");
-    //     }
-
-    //     const lamports = await getMinimumBalanceForRentExemptMint(connection);
-    //     const mintKeypair = Keypair.generate();
-
-    //     const transaction = new Transaction().add(
-    //         SystemProgram.createAccount({
-    //             fromPubkey: wallet.publicKey,
-    //             newAccountPubkey: mintKeypair.publicKey,
-    //             space: MINT_SIZE,
-    //             lamports,
-    //             programId: TOKEN_PROGRAM_ID
-    //         }),
-    //         createInitializeMint2Instruction(mintKeypair.publicKey, 6, wallet.publicKey, wallet.publicKey, TOKEN_PROGRAM_ID)
-    //     );
-    //     transaction.feePayer = wallet.publicKey;
-    //     transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-
-    //     transaction.partialSign(mintKeypair);
-    //     await wallet.sendTransaction(transaction, connection);
-    //     const tokenPubKey = mintKeypair.publicKey.toBase58();
-    //     return tokenPubKey;
-    // }
-
 
     return (
         <div className="flex flex-col items-center justify-center w-full">
@@ -68,24 +38,50 @@ export function TokenLaunchpad() {
                 />
 
                 <input
-                    type="text"
-                    placeholder="Image URL"
-                    value={image}
-                    onChange={(e) => setImage(e.target.value)}
-                    className="w-full p-3 rounded-lg border border-gray-300 bg-white text-black focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => e.target.files && setImage(e.target.files[0])}
+                    className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-violet-600 file:text-white file:hover:bg-indigo-700 file:cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 />
 
                 <input
+                    type="number"
+                    placeholder="Decimals"
+                    value={decimal}
+                    onChange={(e) => setDecimal(Number(e.target.value))}
+                    className="w-full p-3 rounded-lg border border-gray-300 bg-white text-black focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+
+                {/* <input
                     type="number"
                     placeholder="Initial Supply"
                     value={initialSupply}
                     onChange={(e) => setInitialSupply(Number(e.target.value))}
                     className="w-full p-3 rounded-lg border border-gray-300 bg-white text-black focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                /> */}
+
+                <select
+                    value={isMutable === undefined ? '' : isMutable.toString()}
+                    onChange={(e) => setIsMutable(e.target.value === 'true')}
+                    className="block w-full p-2 rounded-md border border-gray-300 bg-white text-gray-800
+                   focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                >
+                    <option value="" disabled>isMutable</option>
+                    <option value="true">True</option>
+                    <option value="false">False</option>
+                </select>
+
+                <input
+                    type="text"
+                    placeholder="Description"
+                    value={description === null ? "" : description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="w-full p-3 rounded-lg border border-gray-300 bg-white text-black focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
 
                 <button
                     onClick={async () => {
-                        const tokenPubKey = await createToken(wallet);
+                        const tokenPubKey = await createToken(wallet,symbol,name,image,decimal,isMutable,description);
                         setToken(tokenPubKey!);
                     }}
                     className="w-full py-3 rounded-lg bg-violet-200 text-black font-semibold hover:bg-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-200"
